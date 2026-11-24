@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CityCare Hospital – Book an appointment</title>
+<style>
+:root{--bg:#f6f9f8;--ink:#17302d;--muted:#5d7571;--line:#d6e2df;--brand:#0f5c55;--brand2:#e8f2f0;--warn:#b3261e;--card:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1a19;--ink:#e3efec;--muted:#93aaa6;--line:#26403c;--brand:#4fb3a6;--brand2:#173230;--warn:#ff8a80;--card:#142422}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:600;margin:0 0 .5rem}
+header{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--line);background:var(--card)}
+header h1{font-size:1.4rem;color:var(--brand)}
+nav{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--brand);background:var(--brand);color:#fff;padding:.5rem .9rem;border-radius:6px}
+button.ghost{background:transparent;color:var(--brand)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+main{max-width:960px;margin:0 auto;padding:1.5rem}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1rem}
+.row{display:flex;gap:.75rem;flex-wrap:wrap}.row>*{flex:1 1 180px}
+label{display:block;font-size:.9rem;color:var(--muted);margin:.5rem 0 .2rem}
+input,select{width:100%;padding:.55rem .7rem;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.slots{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem}
+.slots button{background:var(--brand2);color:var(--brand);border-color:var(--line)}
+.slots button.sel{background:var(--brand);color:#fff}
+.msg{min-height:1.4rem;margin:.5rem 0}.err{color:var(--warn)}.ok{color:var(--brand)}
+table{width:100%;border-collapse:collapse;font-size:.92rem}th,td{text-align:left;padding:.5rem;border-bottom:1px solid var(--line)}
+.wrap{overflow-x:auto}.muted{color:var(--muted)}
+#auth{max-width:420px;margin:2rem auto}
+</style>
+</head>
+<body>
+<header>
+  <h1>CityCare Hospital</h1>
+  <nav id="nav"></nav>
+</header>
+<main>
+  <!-- Log in / sign up -->
+  <section id="auth" class="card">
+    <h2 id="authTitle">Log in</h2>
+    <label for="aName" id="lName" hidden>Full name</label><input id="aName" hidden autocomplete="name">
+    <label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="email">
+    <label for="aPass">Password (8+ characters)</label><input id="aPass" type="password" autocomplete="current-password">
+    <label for="aCode" id="lCode" hidden>Staff code (only for hospital admins)</label><input id="aCode" hidden>
+    <div class="msg err" id="authMsg" role="alert"></div>
+    <div class="row"><button id="authBtn">Log in</button><button class="ghost" id="swap">Create an account</button></div>
+    <p class="muted" style="font-size:.85rem"><a href="#" id="staff">I am hospital staff</a></p>
+  </section>
+
+  <!-- Book -->
+  <section id="book">
+    <h2>Book an appointment</h2>
+    <div class="card">
+      <div class="row">
+        <div><label for="dep">Department</label><select id="dep"></select></div>
+        <div><label for="doc">Doctor</label><select id="doc"></select></div>
+      </div>
+      <label>Available times</label>
+      <div class="slots" id="slots"><span class="muted">Choose a doctor to see open times.</span></div>
+      <label for="reason">Reason for visit (optional)</label><input id="reason" maxlength="200">
+      <div class="msg" id="bookMsg" role="status"></div>
+      <button id="bookBtn">Confirm appointment</button>
+    </div>
+  </section>
+
+  <!-- My appointments -->
+  <section id="mine">
+    <h2>My appointments</h2>
+    <div class="card wrap"><table><thead><tr><th>When</th><th>Doctor</th><th>Department</th><th>Status</th><th></th></tr></thead><tbody id="mineBody"></tbody></table></div>
+  </section>
+
+  <!-- Admin -->
+  <section id="admin">
+    <h2>Admin panel</h2>
+    <div class="row">
+      <div class="card"><h3>Add department</h3>
+        <label for="nDep">Name</label><input id="nDep"><p></p><button id="addDep">Add department</button></div>
+      <div class="card"><h3>Add doctor</h3>
+        <label for="nDocName">Name</label><input id="nDocName">
+        <label for="nDocTitle">Title (e.g. Consultant Cardiologist)</label><input id="nDocTitle">
+        <label for="nDocDep">Department</label><select id="nDocDep"></select><p></p><button id="addDoc">Add doctor</button></div>
+    </div>
+    <div class="card"><h3>Create open time slots</h3>
+      <div class="row">
+        <div><label for="sDoc">Doctor</label><select id="sDoc"></select></div>
+        <div><label for="sDate">Date</label><input id="sDate" type="date"></div>
+        <div><label for="sStart">From</label><input id="sStart" type="time" value="09:00"></div>
+        <div><label for="sEnd">To</label><input id="sEnd" type="time" value="13:00"></div>
+        <div><label for="sMin">Minutes per visit</label><input id="sMin" type="number" value="30" min="10"></div>
+      </div><p></p><button id="addSlots">Create slots</button>
+    </div>
+    <div class="msg" id="adminMsg" role="status"></div>
+    <div class="card wrap"><h3>All appointments</h3>
+      <table><thead><tr><th>When</th><th>Patient</th><th>Doctor</th><th>Department</th><th>Status</th></tr></thead><tbody id="allBody"></tbody></table></div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let token = localStorage.getItem('token'), user = JSON.parse(localStorage.getItem('user') || 'null');
+let signup = false, staff = false, chosenSlot = null;
+
+async function api(path, method = 'GET', body) {
+  const r = await fetch('/api' + path, { method,
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+    body: body ? JSON.stringify(body) : undefined });
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 401 && token) logout();
+  if (!r.ok) throw new Error(d.error || 'Request failed');
+  return d;
+}
+const fmt = s => new Date(s.replace(' ', 'T')).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+function show(id) { document.querySelectorAll('section').forEach(s => s.classList.toggle('on', s.id === id)); }
+function setMsg(id, text, ok) { const e = $(id); e.textContent = text; e.className = 'msg ' + (ok ? 'ok' : 'err'); }
+
+function renderNav() {
+  const n = $('nav'); n.innerHTML = '';
+  const add = (t, f, ghost) => { const b = document.createElement('button'); b.textContent = t; if (ghost) b.className = 'ghost'; b.onclick = f; n.appendChild(b); };
+  if (!user) return add('Log in', () => show('auth'));
+  const hi = document.createElement('span'); hi.className = 'muted'; hi.textContent = 'Hello, ' + user.name; n.appendChild(hi);
+  add('Book', () => { show('book'); loadDeps(); }, true);
+  add('My appointments', () => { show('mine'); loadMine(); }, true);
+  if (user.role === 'admin') add('Admin', () => { show('admin'); loadAdmin(); }, true);
+  add('Log out', logout, true);
+}
+function logout() { token = null; user = null; localStorage.clear(); renderNav(); show('auth'); }
+function start() { renderNav(); if (!user) return show('auth'); user.role === 'admin' ? (show('admin'), loadAdmin()) : (show('book'), loadDeps()); }
+
+// ----- auth form -----
+function authUI() {
+  $('authTitle').textContent = signup ? 'Create an account' : 'Log in';
+  $('authBtn').textContent = signup ? 'Sign up' : 'Log in';
+  $('swap').textContent = signup ? 'I already have an account' : 'Create an account';
+  ['aName', 'lName'].forEach(i => $(i).hidden = !signup);
+  ['aCode', 'lCode'].forEach(i => $(i).hidden = !(signup && staff));
+}
+$('swap').onclick = () => { signup = !signup; authUI(); };
+$('staff').onclick = e => { e.preventDefault(); staff = !staff; signup = true; authUI(); };
+$('authBtn').onclick = async () => {
+  try {
+    const body = { email: $('aEmail').value.trim(), password: $('aPass').value };
+    if (signup) { body.name = $('aName').value.trim(); if (staff && $('aCode').value) body.adminCode = $('aCode').value; }
+    const d = await api(signup ? '/auth/signup' : '/auth/login', 'POST', body);
+    token = d.token; user = d.user; localStorage.setItem('token', token); localStorage.setItem('user', JSON.stringify(user));
+    start();
+  } catch (e) { setMsg('authMsg', e.message); }
+};
+
+// ----- booking -----
+async function loadDeps() {
+  const deps = await api('/departments');
+  $('dep').innerHTML = '<option value="">All departments</option>' + deps.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+  loadDocs();
+}
+async function loadDocs() {
+  const docs = await api('/doctors' + ($('dep').value ? '?department_id=' + $('dep').value : ''));
+  $('doc').innerHTML = '<option value="">Select a doctor</option>' + docs.map(d => `<option value="${d.id}">${d.name} – ${d.title || d.department}</option>`).join('');
+  loadSlots();
+}
+async function loadSlots() {
+  chosenSlot = null; const box = $('slots');
+  if (!$('doc').value) { box.innerHTML = '<span class="muted">Choose a doctor to see open times.</span>'; return; }
+  const s = await api(`/doctors/${$('doc').value}/slots`);
+  box.innerHTML = s.length ? '' : '<span class="muted">No open times for this doctor right now.</span>';
+  s.forEach(x => { const b = document.createElement('button'); b.textContent = fmt(x.slot_start);
+    b.onclick = () => { chosenSlot = x.id; box.querySelectorAll('button').forEach(k => k.classList.remove('sel')); b.classList.add('sel'); };
+    box.appendChild(b); });
+}
+$('dep').onchange = loadDocs; $('doc').onchange = loadSlots;
+$('bookBtn').onclick = async () => {
+  if (!chosenSlot) return setMsg('bookMsg', 'Please pick a time first.');
+  try { await api('/appointments', 'POST', { slot_id: chosenSlot, reason: $('reason').value });
+    setMsg('bookMsg', 'Appointment booked. You can see it under My appointments.', true); $('reason').value = ''; loadSlots();
+  } catch (e) { setMsg('bookMsg', e.message); loadSlots(); }
+};
+async function loadMine() {
+  const r = await api('/appointments/mine');
+  $('mineBody').innerHTML = r.length ? r.map(a => `<tr><td>${fmt(a.slot_start)}</td><td>${a.doctor}</td><td>${a.department}</td><td>${a.status}</td>
+    <td>${a.status === 'booked' ? `<button class="ghost" onclick="cancelAppt(${a.id})">Cancel</button>` : ''}</td></tr>`).join('')
+    : '<tr><td colspan="5" class="muted">No appointments yet. Use Book to make one.</td></tr>';
+}
+async function cancelAppt(id) { await api('/appointments/' + id, 'DELETE'); loadMine(); if ($('allBody').children.length) loadAdmin(); }
+
+// ----- admin -----
+async function loadAdmin() {
+  const [deps, docs, all] = await Promise.all([api('/departments'), api('/doctors'), api('/admin/appointments')]);
+  $('nDocDep').innerHTML = deps.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+  $('sDoc').innerHTML = docs.map(d => `<option value="${d.id}">${d.name} (${d.department})</option>`).join('');
+  $('allBody').innerHTML = all.length ? all.map(a => `<tr><td>${fmt(a.slot_start)}</td><td>${a.patient}<br><span class="muted">${a.email}</span></td><td>${a.doctor}</td><td>${a.department}</td><td>${a.status}</td></tr>`).join('')
+    : '<tr><td colspan="5" class="muted">No appointments yet.</td></tr>';
+}
+const adminAct = (fn, okText) => async () => { try { const r = await fn(); setMsg('adminMsg', okText(r), true); loadAdmin(); } catch (e) { setMsg('adminMsg', e.message); } };
+$('addDep').onclick = adminAct(() => api('/admin/departments', 'POST', { name: $('nDep').value.trim() }), () => 'Department added.');
+$('addDoc').onclick = adminAct(() => api('/admin/doctors', 'POST', { name: $('nDocName').value.trim(), title: $('nDocTitle').value.trim(), department_id: $('nDocDep').value }), () => 'Doctor added.');
+$('addSlots').onclick = adminAct(() => api('/admin/slots', 'POST', { doctor_id: $('sDoc').value, date: $('sDate').value, start: $('sStart').value, end: $('sEnd').value, minutes: $('sMin').value }), r => r.created + ' time slots created.');
+
+authUI(); start();
+</script>
+</body>
+</html>
